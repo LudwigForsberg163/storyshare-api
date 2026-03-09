@@ -1,8 +1,17 @@
 
+
 using Microsoft.EntityFrameworkCore;
 using StoryShare.Api;
 
+// At the top
+var allowedOrigins = new[] {
+    "https://happy-island-094c05803.4.azurestaticapps.net", // your Azure Static Web App URL
+    "http://localhost:3000" // for local development, optional
+};
+
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
@@ -12,6 +21,16 @@ builder.Services.AddDbContext<LibraryContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure()
     ));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 
 var app = builder.Build();
@@ -33,11 +52,15 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Use CORS policy
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 
