@@ -45,7 +45,7 @@ app.UseHttpsRedirection();
 app.MapGet("/", () => "Hello from Azure!");
 
 // Simple version endpoint
-app.MapGet("/version", () => Results.Ok(new { version = "1.0.0" }));
+app.MapGet("/version", () => Results.Ok(new { version = "1.0.1" }));
 
 // GET: Search/list books (with availability)
 app.MapGet("/books", async (LibraryContext db, string? search) =>
