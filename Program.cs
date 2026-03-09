@@ -42,6 +42,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
+app.MapGet("/", () => "Hello from Azure!");
+
 // Simple version endpoint
 app.MapGet("/version", () => Results.Ok(new { version = "1.0.0" }));
 
