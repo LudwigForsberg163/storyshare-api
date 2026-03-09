@@ -1,0 +1,6 @@
+@StoryShare_Api_HostAddress = http://localhost:5289
+
+GET {{StoryShare_Api_HostAddress}}/books/
+Accept: application/json
+
+###

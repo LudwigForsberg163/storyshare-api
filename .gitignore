@@ -1,0 +1,6 @@
+# Ignore configuration files with secrets or environment-specific settings
+appsettings.json
+appsettings.Development.json
+bin/
+obj/
+.vs/
