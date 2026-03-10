@@ -19,7 +19,7 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 310,
                     Rating = 4.7,
-                    TotalCopies = 3,
+                    TotalCopies = 1,
                     BorrowDays = 21
                 },
                 new Book {

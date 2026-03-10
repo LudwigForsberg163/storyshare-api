@@ -9,18 +9,119 @@ public static class BooksEndpoints
 	{
 		app.MapGet("/books/search", async (LibraryContext db, string? search) =>
 		{
+			// If search is empty, return all books
+			List<Book> books;
 			if (string.IsNullOrWhiteSpace(search))
-				return Results.BadRequest("Search term is required.");
+			{
+				books = await db.Books.ToListAsync();
+			}
+			else
+			{
+				// Substring search (case-insensitive)
+				books = await db.Books
+					.Where(b => b.Title.ToLower().Contains(search.ToLower()))
+					.ToListAsync();
+			}
 
-			// Substring search (case-insensitive)
-			var books = await db.Books
-				.Where(b => b.Title.ToLower().Contains(search.ToLower()))
-				.ToListAsync();
-			return Results.Ok(books);
+			// Get loan counts for each book as a dictionary
+			var loanCounts = (await db.Loans
+				.Where(l => l.ReturnedAt == null)
+				.GroupBy(l => l.BookId)
+				.Select(g => new { BookId = g.Key, Count = g.Count() })
+				.ToListAsync())
+				.ToDictionary(x => x.BookId, x => x.Count);
+
+			var result = books.Select(b => new {
+				b.Id,
+				b.Title,
+				b.Author,
+				b.ISBN,
+				b.PublicationDate,
+				b.Description,
+				b.ImageUrl,
+				b.Language,
+				b.PageCount,
+				b.Rating,
+				b.TotalCopies,
+				b.BorrowDays,
+				AvailableCopies = b.TotalCopies - (loanCounts.TryGetValue(b.Id, out var count) ? count : 0)
+			});
+			return Results.Ok(result);
 		})
 		.RequireAuthorization()
 		.WithName("SearchBooksByTitleSubstring");
+
+        // POST: Loan a book
+        app.MapPost("/books/{id}/loan", async (int id, LibraryContext db, HttpContext http) =>
+        {
+			var book = await db.Books.FindAsync(id);
+			if (book == null)
+				return Results.NotFound("Book not found.");
+
+			// Check if there are available copies
+			var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
+			var availableCopies = book.TotalCopies - activeLoans;
+			if (availableCopies <= 0)
+				return Results.BadRequest("No copies available to loan.");
+
+			// Get user id (replace with real user logic as needed)
+			var userId = http.User?.Identity?.Name ?? "user";
+
+			var now = DateTime.UtcNow;
+			var loan = new Loan
+			{
+				BookId = book.Id,
+				LoanedAt = now,
+				DueDate = now.AddDays(book.BorrowDays),
+				UserId = userId
+			};
+			db.Loans.Add(loan);
+			await db.SaveChangesAsync();
+			return Results.Ok(loan);
+        })
+        .RequireAuthorization()
+        .WithName("LoanBook");
+
+        // POST: Return a book
+        app.MapPost("/books/{id}/return", async (int id, LibraryContext db, HttpContext http) =>
+        {
+            // Get user id (replace with real user logic as needed)
+            var userId = http.User?.Identity?.Name ?? "user";
+
+            // Find the active loan for this user and book
+            var loan = await db.Loans.FirstOrDefaultAsync(l => l.BookId == id && l.UserId == userId && l.ReturnedAt == null);
+            if (loan == null)
+                return Results.NotFound("No active loan found for this book and user.");
+
+            loan.ReturnedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+            return Results.Ok(loan);
+        })
+        .RequireAuthorization()
+        .WithName("ReturnBook");
+
+        // GET: View current loans for the authenticated user
+			app.MapGet("/loans/current", async (LibraryContext db, HttpContext http) =>
+			{
+				var userId = http.User?.Identity?.Name ?? "user";
+				var loans = await db.Loans
+					.Include(l => l.Book)
+					.Where(l => l.UserId == userId && l.ReturnedAt == null)
+					.Select(l => new {
+						l.Id,
+						l.BookId,
+						BookTitle = l.Book != null ? l.Book.Title : null,
+						l.LoanedAt,
+						l.DueDate
+					})
+					.ToListAsync();
+				return Results.Ok(loans);
+			})
+			.RequireAuthorization()
+			.WithName("GetCurrentLoans");
+
 	}
+    
 
 	// SequenceMatch helper removed; now using .Contains for substring search
 }
