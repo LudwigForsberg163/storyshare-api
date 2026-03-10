@@ -65,10 +65,18 @@ app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
 
+
+// Test endpoint to display JWT secret key (for testing only, remove in production!)
+app.MapGet("/test-jwt-key", (IConfiguration config) =>
+{
+    var key = config["Jwt:Key"];
+    return Results.Ok(new { jwtKey = key });
+});
+
 app.MapGet("/", () => "Hello from Azure!");
 
 // Simple version endpoint
-app.MapGet("/version", () => Results.Ok(new { version = "1.0.1" }));
+app.MapGet("/version", () => Results.Ok(new { version = "1.0.2" }));
 
 // GET: Search/list books (with availability)
 app.MapGet("/books", async (LibraryContext db, string? search) =>
