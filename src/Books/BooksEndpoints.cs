@@ -177,7 +177,8 @@ public static class BooksEndpoints
 				})
 				.ToList();
 
-			return Results.Ok(new { active, inactive });
+			var username = userId;
+			return Results.Ok(new { active, inactive, username });
 
 			// Local helper for formatting TimeSpan as days, hours, minutes
 			static string ToDurationString(TimeSpan ts)
