@@ -38,7 +38,7 @@ public static class UsersEndpoint
             {
                 return Results.Problem(ex.Message);
             }
-            return Results.Ok(new { token = jwt });
+            return Results.Ok(new { token = jwt, username = user.Username });
         });
 
         app.MapPost("/login", async (LibraryContext db, LoginRequest req, UserService userService) =>
@@ -66,7 +66,7 @@ public static class UsersEndpoint
             {
                 return Results.Problem(ex.Message);
             }
-            return Results.Ok(new { token = jwt });
+            return Results.Ok(new { token = jwt, username = user.Username });
         });
     }
 
