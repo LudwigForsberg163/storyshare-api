@@ -98,11 +98,11 @@ public static class BooksEndpoints
 			// Get user id (replace with real user logic as needed)
 			var userId = http.User?.Identity?.Name ?? "user";
 
-			// Check if user already has an active loan on any book
-			var userActiveLoan = await db.Loans.AnyAsync(l => l.UserId == userId && l.ReturnedAt == null);
-			if (userActiveLoan)
+			// Check if user already has an active loan on this specific book
+			var userActiveLoanForBook = await db.Loans.AnyAsync(l => l.UserId == userId && l.BookId == id && l.ReturnedAt == null);
+			if (userActiveLoanForBook)
 			{
-				return Results.BadRequest("Du kan bara ha en aktiv utlåning åt gången.");
+				return Results.BadRequest("Du har redan en aktiv utlåning på denna bok.");
 			}
 
 			// Check available copies
