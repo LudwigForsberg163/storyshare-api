@@ -67,11 +67,11 @@ app.UseHttpsRedirection();
 
 
 // Test endpoint to display JWT secret key (for testing only, remove in production!)
-// app.MapGet("/test-jwt-key", (IConfiguration config) =>
-// {
-//     var key = config["Jwt:Key"];
-//     return Results.Ok(new { jwtKey = key });
-// });
+app.MapGet("/test-jwt-key", (IConfiguration config) =>
+{
+    var key = config["Jwt:Key"];
+    return Results.Ok(new { jwtKey = key });
+});
 
 app.MapGet("/", () => "Hello from Azure!");
 
