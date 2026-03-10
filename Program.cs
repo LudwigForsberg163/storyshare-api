@@ -2,6 +2,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using StoryShare.Api;
+using StoryShare.Api.Users;
+using StoryShare.Api.Health;
 
 // At the top
 var allowedOrigins = new[] {
@@ -62,21 +64,24 @@ if (app.Environment.IsDevelopment())
 // Use CORS policy
 app.UseCors("AllowFrontend");
 
+
 app.UseHttpsRedirection();
 
+// Map user endpoints
+app.MapUsersEndpoints();
+// Map health endpoints
+app.MapHealthEndpoints();
 
 
-// Test endpoint to display JWT secret key (for testing only, remove in production!)
-app.MapGet("/test-jwt-key", (IConfiguration config) =>
-{
-    var key = config["Jwt:Key"];
-    return Results.Ok(new { jwtKey = key });
-});
+
+// Test endpoint to display JWT secret key (for testing only)
+// app.MapGet("/test-jwt-key", (IConfiguration config) =>
+// {
+//     var key = config["Jwt:Key"];
+//     return Results.Ok(new { jwtKey = key });
+// });
 
 app.MapGet("/", () => "Hello from Azure!");
-
-// Simple version endpoint
-app.MapGet("/version", () => Results.Ok(new { version = "1.0.2" }));
 
 // GET: Search/list books (with availability)
 app.MapGet("/books", async (LibraryContext db, string? search) =>

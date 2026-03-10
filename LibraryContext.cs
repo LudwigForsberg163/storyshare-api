@@ -2,12 +2,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace StoryShare.Api;
 
+
 public class LibraryContext : DbContext
 {
     public LibraryContext(DbContextOptions<LibraryContext> options) : base(options) { }
 
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Loan> Loans => Set<Loan>();
+    public DbSet<User> Users => Set<User>();
+}
+public class User
+{
+    public int Id { get; set; } // Primary key
+    public string Username { get; set; } = string.Empty; // Unique, required
+    public string PasswordHash { get; set; } = string.Empty; // Hashed password
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Registration date
 }
 
 public class Book

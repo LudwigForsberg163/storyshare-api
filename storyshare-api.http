@@ -1,0 +1,27 @@
+@StoryShare_Api_HostAddress = http://localhost:3001
+@StoryShare_Api_HostAddress_P = https://storyshare-api-eehwbgbehccfh8bx.swedencentral-01.azurewebsites.net
+GET {{StoryShare_Api_HostAddress}}/books/
+Accept: application/json
+
+
+### Test JWT key endpoint
+GET {{StoryShare_Api_HostAddress_P}}/test-jwt-key
+Accept: application/json
+
+### Register a new user
+POST {{StoryShare_Api_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "username": "testuser1",
+  "password": "TestPassword123!"
+}
+
+### Login as a user
+POST {{StoryShare_Api_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "username": "testuser1",
+  "password": "TestPassword123!"
+}

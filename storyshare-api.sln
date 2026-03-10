@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoryShare.Api", "StoryShare.Api.csproj", "{F426FF77-7286-DC21-193C-EDC9081498C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "storyshare-api", "storyshare-api.csproj", "{F426FF77-7286-DC21-193C-EDC9081498C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
