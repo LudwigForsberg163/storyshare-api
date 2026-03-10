@@ -12,7 +12,7 @@ using StoryShare.Api;
 namespace storyshareapi.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    [Migration("20260310101025_InitialCreate")]
+    [Migration("20260310101936_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
