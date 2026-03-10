@@ -138,24 +138,62 @@ public static class BooksEndpoints
         .WithName("ReturnBook");
 
         // GET: View current loans for the authenticated user
-			app.MapGet("/loans/current", async (LibraryContext db, HttpContext http) =>
+		app.MapGet("/loans/current", async (LibraryContext db, HttpContext http) =>
+		{
+			var userId = http.User?.Identity?.Name ?? "user";
+			var allLoans = await db.Loans
+				.Include(l => l.Book)
+				.Where(l => l.UserId == userId)
+				.ToListAsync();
+
+			var active = allLoans
+				.Where(l => l.ReturnedAt == null)
+				.Select(l => new {
+					l.Id,
+					l.BookId,
+					BookTitle = l.Book != null ? l.Book.Title : null,
+					l.LoanedAt,
+					l.DueDate,
+					BorrowedTime = ToDurationString(l.DueDate - l.LoanedAt),
+					TimeRemaining = ToDurationString(l.DueDate - DateTime.UtcNow),
+					TotalCopies = l.Book?.TotalCopies ?? 0,
+					AvailableCopies = l.Book != null ? l.Book.TotalCopies - db.Loans.Count(x => x.BookId == l.BookId && x.ReturnedAt == null) : 0
+				})
+				.ToList();
+
+			var inactive = allLoans
+				.Where(l => l.ReturnedAt != null)
+				.Select(l => new {
+					l.Id,
+					l.BookId,
+					BookTitle = l.Book != null ? l.Book.Title : null,
+					l.LoanedAt,
+					l.DueDate,
+					ReturnedAt = l.ReturnedAt,
+					BorrowedTime = ToDurationString(l.DueDate - l.LoanedAt),
+					DaysLeftWhenReturned = l.ReturnedAt.HasValue ? ToDurationString(l.DueDate - l.ReturnedAt.Value) : null
+				})
+				.ToList();
+
+			return Results.Ok(new { active, inactive });
+
+			// Local helper for formatting TimeSpan as days, hours, minutes
+			static string ToDurationString(TimeSpan ts)
 			{
-				var userId = http.User?.Identity?.Name ?? "user";
-				var loans = await db.Loans
-					.Include(l => l.Book)
-					.Where(l => l.UserId == userId && l.ReturnedAt == null)
-					.Select(l => new {
-						l.Id,
-						l.BookId,
-						BookTitle = l.Book != null ? l.Book.Title : null,
-						l.LoanedAt,
-						l.DueDate
-					})
-					.ToListAsync();
-				return Results.Ok(loans);
-			})
-			.RequireAuthorization()
-			.WithName("GetCurrentLoans");
+				var sign = ts.TotalSeconds < 0 ? "-" : "";
+				ts = ts.Duration();
+				var days = (int)ts.TotalDays;
+				var hours = ts.Hours;
+				var minutes = ts.Minutes;
+				var parts = new List<string>();
+				if (days != 0) parts.Add($"{days} dagar");
+				if (hours != 0) parts.Add($"{hours} timmar");
+				if (minutes != 0 || parts.Count == 0) parts.Add($"{minutes} minuter");
+				return sign + string.Join(", ", parts);
+			}
+		})
+		.RequireAuthorization()
+		.WithName("GetCurrentLoans");
 
 	}
 }
