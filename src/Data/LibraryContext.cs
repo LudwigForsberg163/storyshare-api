@@ -41,6 +41,7 @@ public class Book
     public int? PageCount { get; set; }
     public double? Rating { get; set; }
     public int TotalCopies { get; set; } = 1;
+    public int BorrowDays { get; set; } = 14; // Number of days a book can be borrowed (default 14)
     public ICollection<BookTag> BookTags { get; set; } = new List<BookTag>();
 }
 
@@ -66,5 +67,6 @@ public class Loan
     public Book? Book { get; set; }
     public DateTime LoanedAt { get; set; }
     public DateTime? ReturnedAt { get; set; }
+    public DateTime DueDate { get; set; } // When the book is due to be returned
     public string UserId { get; set; } = "user"; // Single user for simplicity
 }

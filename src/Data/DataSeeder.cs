@@ -19,7 +19,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 310,
                     Rating = 4.7,
-                    TotalCopies = 3
+                    TotalCopies = 3,
+                    BorrowDays = 21
                 },
                 new Book {
                     Title = "The Fellowship of the Ring",
@@ -31,7 +32,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 423,
                     Rating = 4.8,
-                    TotalCopies = 2
+                    TotalCopies = 2,
+                    BorrowDays = 21
                 },
                 new Book {
                     Title = "The Two Towers",
@@ -43,7 +45,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 352,
                     Rating = 4.7,
-                    TotalCopies = 2
+                    TotalCopies = 2,
+                    BorrowDays = 21
                 },
                 new Book {
                     Title = "The Return of the King",
@@ -55,7 +58,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 416,
                     Rating = 4.9,
-                    TotalCopies = 2
+                    TotalCopies = 2,
+                    BorrowDays = 21
                 },
                 new Book {
                     Title = "1984",
@@ -67,7 +71,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 328,
                     Rating = 4.6,
-                    TotalCopies = 4
+                    TotalCopies = 4,
+                    BorrowDays = 14
                 },
                 new Book {
                     Title = "To Kill a Mockingbird",
@@ -79,7 +84,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 281,
                     Rating = 4.8,
-                    TotalCopies = 3
+                    TotalCopies = 3,
+                    BorrowDays = 14
                 },
                 new Book {
                     Title = "Pride and Prejudice",
@@ -91,7 +97,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 279,
                     Rating = 4.5,
-                    TotalCopies = 2
+                    TotalCopies = 2,
+                    BorrowDays = 14
                 },
                 new Book {
                     Title = "The Catcher in the Rye",
@@ -103,7 +110,8 @@ public static class DataSeeder
                     Language = "English",
                     PageCount = 214,
                     Rating = 4.0,
-                    TotalCopies = 2
+                    TotalCopies = 2,
+                    BorrowDays = 14
                 }
             );
             db.SaveChanges();
