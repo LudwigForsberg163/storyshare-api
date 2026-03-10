@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using StoryShare.Api;
 using StoryShare.Api.Users;
 using StoryShare.Api.Health;
+using StoryShare.Api.Books;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 // At the top
@@ -82,6 +83,8 @@ app.UseHttpsRedirection();
 app.MapUsersEndpoints();
 // Map health endpoints
 app.MapHealthEndpoints();
+// Map books endpoints
+app.MapBooksEndpoints();
 
 
 
