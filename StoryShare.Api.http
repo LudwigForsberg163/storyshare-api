@@ -1,6 +1,9 @@
 @StoryShare_Api_HostAddress = http://localhost:5289
-
+@StoryShare_Api_HostAddress_P = https://storyshare-api-eehwbgbehccfh8bx.swedencentral-01.azurewebsites.net
 GET {{StoryShare_Api_HostAddress}}/books/
 Accept: application/json
 
-###
+
+### Test JWT key endpoint
+GET {{StoryShare_Api_HostAddress_P}}/test-jwt-key
+Accept: application/json
