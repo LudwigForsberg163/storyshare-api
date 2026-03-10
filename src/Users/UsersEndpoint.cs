@@ -10,14 +10,13 @@ public static class UsersEndpoint
 {
     public static void MapUsersEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/register", async (LibraryContext db, RegisterRequest req) =>
+        app.MapPost("/register", async (LibraryContext db, RegisterRequest req, UserService userService) =>
         {
             if (string.IsNullOrWhiteSpace(req.Username) || string.IsNullOrWhiteSpace(req.Password))
                 return Results.BadRequest("Användarnamn och lösenord krävs.");
 
             if (await db.Users.AnyAsync(u => u.Username == req.Username))
                 return Results.BadRequest("Användarnamnet finns redan.");
-
 
             var user = new User
             {
@@ -28,10 +27,21 @@ public static class UsersEndpoint
             user.PasswordHash = hasher.HashPassword(user, req.Password);
             db.Users.Add(user);
             await db.SaveChangesAsync();
-            return Results.Ok(new { user.Id, user.Username });
+
+            // Generate JWT using UserService
+            string jwt;
+            try
+            {
+                jwt = userService.GenerateJwtToken(user);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+            return Results.Ok(new { token = jwt });
         });
 
-        app.MapPost("/login", async (LibraryContext db, LoginRequest req, IConfiguration config) =>
+        app.MapPost("/login", async (LibraryContext db, LoginRequest req, UserService userService) =>
         {
 
             if (string.IsNullOrWhiteSpace(req.Username) || string.IsNullOrWhiteSpace(req.Password))
@@ -46,27 +56,16 @@ public static class UsersEndpoint
             if (result == PasswordVerificationResult.Failed)
                 return Results.BadRequest("Felaktigt användarnamn eller lösenord.");
 
-            // Generate JWT
-            var jwtKey = config["Jwt:Key"];
-            if (string.IsNullOrEmpty(jwtKey))
-                return Results.Problem("JWT-nyckel är inte konfigurerad.");
-
-            var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var key = System.Text.Encoding.UTF8.GetBytes(jwtKey);
-            var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
+            // Generate JWT using UserService
+            string jwt;
+            try
             {
-                Subject = new System.Security.Claims.ClaimsIdentity(new[]
-                {
-                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Username),
-                    new System.Security.Claims.Claim("userId", user.Id.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
-                    new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
-                    Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var jwt = tokenHandler.WriteToken(token);
+                jwt = userService.GenerateJwtToken(user);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
             return Results.Ok(new { token = jwt });
         });
     }

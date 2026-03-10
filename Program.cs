@@ -33,6 +33,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Register UserService for DI
+builder.Services.AddScoped<UserService>();
+
 // Add authentication and authorization
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is not configured.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
