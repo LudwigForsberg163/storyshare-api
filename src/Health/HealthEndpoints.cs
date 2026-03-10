@@ -4,6 +4,6 @@ public static class HealthEndpoints
 {
     public static void MapHealthEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/version", () => Results.Ok(new { version = "1.0.11" }));
+        app.MapGet("/version", () => Results.Ok(new { version = "1.0.13"}));
     }
 }

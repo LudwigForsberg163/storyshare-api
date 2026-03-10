@@ -101,6 +101,14 @@ public static class BooksEndpoints
 			using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 			try
 			{
+				// Check if user already has an active loan on any book
+				var userActiveLoan = await db.Loans.AnyAsync(l => l.UserId == userId && l.ReturnedAt == null);
+				if (userActiveLoan)
+				{
+					await transaction.RollbackAsync();
+					return Results.BadRequest("Du kan bara ha en aktiv utlåning åt gången.");
+				}
+
 				// Re-check available copies inside the transaction
 				var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
 				var availableCopies = book.TotalCopies - activeLoans;
