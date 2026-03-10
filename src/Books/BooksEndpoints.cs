@@ -148,6 +148,7 @@ public static class BooksEndpoints
 
 			var active = allLoans
 				.Where(l => l.ReturnedAt == null)
+				.OrderBy(l => l.DueDate)
 				.Select(l => new {
 					l.Id,
 					l.BookId,
@@ -163,6 +164,7 @@ public static class BooksEndpoints
 
 			var inactive = allLoans
 				.Where(l => l.ReturnedAt != null)
+				.OrderByDescending(l => l.ReturnedAt)
 				.Select(l => new {
 					l.Id,
 					l.BookId,
