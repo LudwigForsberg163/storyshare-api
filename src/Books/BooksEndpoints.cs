@@ -89,35 +89,48 @@ public static class BooksEndpoints
 		.WithName("SearchBooksByTitleSubstring");
 
         // POST: Loan a book
-        app.MapPost("/books/{id}/loan", async (int id, LibraryContext db, HttpContext http) =>
-        {
+		app.MapPost("/books/{id}/loan", async (int id, LibraryContext db, HttpContext http) =>
+		{
 			var book = await db.Books.FindAsync(id);
 			if (book == null)
 				return Results.NotFound("Boken hittades inte.");
 
-			// Check if there are available copies
-			var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
-			var availableCopies = book.TotalCopies - activeLoans;
-			if (availableCopies <= 0)
-				return Results.BadRequest("Inga exemplar tillgängliga för utlåning.");
-
 			// Get user id (replace with real user logic as needed)
 			var userId = http.User?.Identity?.Name ?? "user";
 
-			var now = DateTime.UtcNow;
-			var loan = new Loan
+			using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+			try
 			{
-				BookId = book.Id,
-				LoanedAt = now,
-				DueDate = now.AddDays(book.BorrowDays),
-				UserId = userId
-			};
-			db.Loans.Add(loan);
-			await db.SaveChangesAsync();
-			return Results.Ok(loan);
-        })
-        .RequireAuthorization()
-        .WithName("LoanBook");
+				// Re-check available copies inside the transaction
+				var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
+				var availableCopies = book.TotalCopies - activeLoans;
+				if (availableCopies <= 0)
+				{
+					await transaction.RollbackAsync();
+					return Results.BadRequest("Inga exemplar tillgängliga för utlåning.");
+				}
+
+				var now = DateTime.UtcNow;
+				var loan = new Loan
+				{
+					BookId = book.Id,
+					LoanedAt = now,
+					DueDate = now.AddDays(book.BorrowDays),
+					UserId = userId
+				};
+				db.Loans.Add(loan);
+				await db.SaveChangesAsync();
+				await transaction.CommitAsync();
+				return Results.Ok(loan);
+			}
+			catch
+			{
+				await transaction.RollbackAsync();
+				throw;
+			}
+		})
+		.RequireAuthorization()
+		.WithName("LoanBook");
 
         // POST: Return a book
         app.MapPost("/books/{id}/return", async (int id, LibraryContext db, HttpContext http) =>
