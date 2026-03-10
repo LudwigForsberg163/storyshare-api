@@ -15,8 +15,8 @@ public static class BooksEndpoints
                 .Include(b => b.BookTags)
                     .ThenInclude(bt => bt.Tag)
                 .FirstOrDefaultAsync(b => b.Id == id);
-            if (book == null)
-                return Results.NotFound("Book not found.");
+			if (book == null)
+				return Results.NotFound("Boken hittades inte.");
 
 			// Calculate available copies
 			var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
@@ -91,13 +91,13 @@ public static class BooksEndpoints
         {
 			var book = await db.Books.FindAsync(id);
 			if (book == null)
-				return Results.NotFound("Book not found.");
+				return Results.NotFound("Boken hittades inte.");
 
 			// Check if there are available copies
 			var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
 			var availableCopies = book.TotalCopies - activeLoans;
 			if (availableCopies <= 0)
-				return Results.BadRequest("No copies available to loan.");
+				return Results.BadRequest("Inga exemplar tillgängliga för utlåning.");
 
 			// Get user id (replace with real user logic as needed)
 			var userId = http.User?.Identity?.Name ?? "user";
@@ -125,8 +125,8 @@ public static class BooksEndpoints
 
             // Find the active loan for this user and book
             var loan = await db.Loans.FirstOrDefaultAsync(l => l.BookId == id && l.UserId == userId && l.ReturnedAt == null);
-            if (loan == null)
-                return Results.NotFound("No active loan found for this book and user.");
+			if (loan == null)
+				return Results.NotFound("Ingen aktiv utlåning hittades för denna bok och användare.");
 
             loan.ReturnedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();

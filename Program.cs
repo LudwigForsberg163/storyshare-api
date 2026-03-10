@@ -12,10 +12,7 @@ var allowedOrigins = new[] {
     "https://happy-island-094c05803.4.azurestaticapps.net", // your Azure Static Web App URL
     "http://localhost:3000" // for local development, optional
 };
-
-
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
@@ -53,7 +50,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-
 var app = builder.Build();
 
 // Seed database with initial books
@@ -83,6 +79,5 @@ app.MapUsersEndpoints();
 app.MapHealthEndpoints();
 // Map books endpoints
 app.MapBooksEndpoints();
-
 
 app.Run();
