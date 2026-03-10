@@ -1,9 +1,10 @@
-
-
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using StoryShare.Api;
 using StoryShare.Api.Users;
 using StoryShare.Api.Health;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 // At the top
 var allowedOrigins = new[] {
@@ -34,6 +35,23 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add authentication and authorization
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is not configured.");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+builder.Services.AddAuthorization();
+
 
 var app = builder.Build();
 
@@ -41,17 +59,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LibraryContext>();
-    if (!db.Books.Any())
-    {
-        db.Books.AddRange(
-            new Book { Title = "The Hobbit", Author = "J.R.R. Tolkien" },
-            new Book { Title = "1984", Author = "George Orwell" },
-            new Book { Title = "To Kill a Mockingbird", Author = "Harper Lee" },
-            new Book { Title = "Pride and Prejudice", Author = "Jane Austen" },
-            new Book { Title = "The Catcher in the Rye", Author = "J.D. Salinger" }
-        );
-        db.SaveChanges();
-    }
+    StoryShare.Api.Data.DataSeeder.SeedDatabase(db);
 }
 
 
@@ -65,9 +73,12 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 
 
+
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseHttpsRedirection();
 
-// Map user endpoints
+// Map user endpoints (register and login are public, others can be protected in their own files)
 app.MapUsersEndpoints();
 // Map health endpoints
 app.MapHealthEndpoints();
@@ -84,6 +95,7 @@ app.MapHealthEndpoints();
 app.MapGet("/", () => "Hello from Azure!");
 
 // GET: Search/list books (with availability)
+
 app.MapGet("/books", async (LibraryContext db, string? search) =>
 {
     var query = db.Books.AsQueryable();
@@ -92,9 +104,11 @@ app.MapGet("/books", async (LibraryContext db, string? search) =>
     var books = await query.ToListAsync();
     return Results.Ok(books);
 })
+    .RequireAuthorization()
     .WithName("GetBooks");
 
 // POST: Borrow a book
+
 app.MapPost("/books/{id}/borrow", async (int id, LibraryContext db) =>
 {
     var book = await db.Books.FindAsync(id);
@@ -106,9 +120,11 @@ app.MapPost("/books/{id}/borrow", async (int id, LibraryContext db) =>
     await db.SaveChangesAsync();
     return Results.Ok(loan);
 })
+    .RequireAuthorization()
     .WithName("BorrowBook");
 
 // GET: View current loans
+
 app.MapGet("/loans", async (LibraryContext db) =>
 {
     var loans = await db.Loans
@@ -117,9 +133,11 @@ app.MapGet("/loans", async (LibraryContext db) =>
         .ToListAsync();
     return Results.Ok(loans);
 })
+    .RequireAuthorization()
     .WithName("GetLoans");
 
 // POST: Return a book
+
 app.MapPost("/loans/{id}/return", async (int id, LibraryContext db) =>
 {
     var loan = await db.Loans.Include(l => l.Book).FirstOrDefaultAsync(l => l.Id == id && l.UserId == "user" && l.ReturnedAt == null);
@@ -130,6 +148,7 @@ app.MapPost("/loans/{id}/return", async (int id, LibraryContext db) =>
     await db.SaveChangesAsync();
     return Results.Ok(loan);
 })
+    .RequireAuthorization()
     .WithName("ReturnBook");
 
 app.Run();
