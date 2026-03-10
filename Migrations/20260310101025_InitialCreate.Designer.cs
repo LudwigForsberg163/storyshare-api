@@ -9,11 +9,11 @@ using StoryShare.Api;
 
 #nullable disable
 
-namespace StoryShare.Api.Migrations
+namespace storyshareapi.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    [Migration("20260310080704_AddUserTable")]
-    partial class AddUserTable
+    [Migration("20260310101025_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,16 +37,52 @@ namespace StoryShare.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ISBN")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Language")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PageCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PublicationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double?>("Rating")
+                        .HasColumnType("float");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("TotalCopies")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Books");
+                });
+
+            modelBuilder.Entity("StoryShare.Api.BookTag", b =>
+                {
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("BookTags");
                 });
 
             modelBuilder.Entity("StoryShare.Api.Loan", b =>
@@ -77,6 +113,23 @@ namespace StoryShare.Api.Migrations
                     b.ToTable("Loans");
                 });
 
+            modelBuilder.Entity("StoryShare.Api.Tag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tags");
+                });
+
             modelBuilder.Entity("StoryShare.Api.User", b =>
                 {
                     b.Property<int>("Id")
@@ -101,6 +154,25 @@ namespace StoryShare.Api.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("StoryShare.Api.BookTag", b =>
+                {
+                    b.HasOne("StoryShare.Api.Book", "Book")
+                        .WithMany("BookTags")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StoryShare.Api.Tag", "Tag")
+                        .WithMany("BookTags")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Tag");
+                });
+
             modelBuilder.Entity("StoryShare.Api.Loan", b =>
                 {
                     b.HasOne("StoryShare.Api.Book", "Book")
@@ -110,6 +182,16 @@ namespace StoryShare.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Book");
+                });
+
+            modelBuilder.Entity("StoryShare.Api.Book", b =>
+                {
+                    b.Navigation("BookTags");
+                });
+
+            modelBuilder.Entity("StoryShare.Api.Tag", b =>
+                {
+                    b.Navigation("BookTags");
                 });
 #pragma warning restore 612, 618
         }

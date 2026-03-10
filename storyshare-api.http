@@ -1,6 +1,8 @@
 @StoryShare_Api_HostAddress = http://localhost:3001
 @StoryShare_Api_HostAddress_P = https://storyshare-api-eehwbgbehccfh8bx.swedencentral-01.azurewebsites.net
-GET {{StoryShare_Api_HostAddress}}/books/
+@token = 
+GET {{StoryShare_Api_HostAddress_P}}/books/
+Authorization: Bearer {{token}}
 Accept: application/json
 
 
@@ -18,7 +20,7 @@ Content-Type: application/json
 }
 
 ### Login as a user
-POST {{StoryShare_Api_HostAddress}}/login
+POST {{StoryShare_Api_HostAddress_P}}/login
 Content-Type: application/json
 
 {

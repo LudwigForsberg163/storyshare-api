@@ -109,19 +109,19 @@ app.MapGet("/books", async (LibraryContext db, string? search) =>
 
 // POST: Borrow a book
 
-app.MapPost("/books/{id}/borrow", async (int id, LibraryContext db) =>
-{
-    var book = await db.Books.FindAsync(id);
-    if (book is null) return Results.NotFound();
-    if (!book.IsAvailable) return Results.BadRequest("Book is already borrowed.");
-    book.IsAvailable = false;
-    var loan = new Loan { BookId = id, LoanedAt = DateTime.UtcNow, UserId = "user" };
-    db.Loans.Add(loan);
-    await db.SaveChangesAsync();
-    return Results.Ok(loan);
-})
-    .RequireAuthorization()
-    .WithName("BorrowBook");
+// app.MapPost("/books/{id}/borrow", async (int id, LibraryContext db) =>
+// {
+//     var book = await db.Books.FindAsync(id);
+//     if (book is null) return Results.NotFound();
+//     if (!book.IsAvailable) return Results.BadRequest("Book is already borrowed.");
+//     book.IsAvailable = false;
+//     var loan = new Loan { BookId = id, LoanedAt = DateTime.UtcNow, UserId = "user" };
+//     db.Loans.Add(loan);
+//     await db.SaveChangesAsync();
+//     return Results.Ok(loan);
+// })
+//     .RequireAuthorization()
+//     .WithName("BorrowBook");
 
 // GET: View current loans
 
@@ -138,20 +138,20 @@ app.MapGet("/loans", async (LibraryContext db) =>
 
 // POST: Return a book
 
-app.MapPost("/loans/{id}/return", async (int id, LibraryContext db) =>
-{
-    var loan = await db.Loans.Include(l => l.Book).FirstOrDefaultAsync(l => l.Id == id && l.UserId == "user" && l.ReturnedAt == null);
-    if (loan is null) return Results.NotFound();
-    loan.ReturnedAt = DateTime.UtcNow;
-    if (loan.Book is not null)
-        loan.Book.IsAvailable = true;
-    await db.SaveChangesAsync();
-    return Results.Ok(loan);
-})
-    .RequireAuthorization()
-    .WithName("ReturnBook");
+// app.MapPost("/loans/{id}/return", async (int id, LibraryContext db) =>
+// {
+//     var loan = await db.Loans.Include(l => l.Book).FirstOrDefaultAsync(l => l.Id == id && l.UserId == "user" && l.ReturnedAt == null);
+//     if (loan is null) return Results.NotFound();
+//     loan.ReturnedAt = DateTime.UtcNow;
+//     if (loan.Book is not null)
+//         loan.Book.IsAvailable = true;
+//     await db.SaveChangesAsync();
+//     return Results.Ok(loan);
+// })
+//     .RequireAuthorization()
+//     .WithName("ReturnBook");
 
-app.Run();
+// app.Run();
 
 record Story
 {
