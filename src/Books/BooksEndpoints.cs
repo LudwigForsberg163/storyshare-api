@@ -7,6 +7,41 @@ public static class BooksEndpoints
 {
 	public static void MapBooksEndpoints(this IEndpointRouteBuilder app)
 	{
+
+        // GET: Get all data for a single book
+        app.MapGet("/books/{id}", async (int id, LibraryContext db) =>
+        {
+            var book = await db.Books
+                .Include(b => b.BookTags)
+                    .ThenInclude(bt => bt.Tag)
+                .FirstOrDefaultAsync(b => b.Id == id);
+            if (book == null)
+                return Results.NotFound("Book not found.");
+
+			// Calculate available copies
+			var activeLoans = await db.Loans.CountAsync(l => l.BookId == id && l.ReturnedAt == null);
+			var availableCopies = book.TotalCopies - activeLoans;
+			var result = new {
+				book.Id,
+				book.Title,
+				book.Author,
+				book.ISBN,
+				book.PublicationDate,
+				book.Description,
+				book.ImageUrl,
+				book.Language,
+				book.PageCount,
+				book.Rating,
+				book.TotalCopies,
+				book.BorrowDays,
+				AvailableCopies = availableCopies,
+				Tags = book.BookTags.Select(bt => bt.Tag.Name).ToList()
+			};
+			return Results.Ok(result);
+        })
+        .RequireAuthorization()
+        .WithName("GetBookDetails");
+
 		app.MapGet("/books/search", async (LibraryContext db, string? search) =>
 		{
 			// If search is empty, return all books
@@ -121,7 +156,4 @@ public static class BooksEndpoints
 			.WithName("GetCurrentLoans");
 
 	}
-    
-
-	// SequenceMatch helper removed; now using .Contains for substring search
 }
