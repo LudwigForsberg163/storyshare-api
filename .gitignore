@@ -4,3 +4,4 @@ appsettings.Development.json
 bin/
 obj/
 .vs/
+storyshare-api.http
